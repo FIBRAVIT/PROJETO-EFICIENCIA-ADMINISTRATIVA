@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehAdmin() {
+      return request.auth != null && request.auth.token.email == "davi@fibravit.com.br";
+    }
+
+    match /respostas/{id} {
+      // Só a administradora lê, edita e apaga.
+      allow read, update, delete: if ehAdmin();
+
+      // Qualquer pessoa com o código de acesso pode ENVIAR (nunca ler).
+      allow create: if request.resource.data.codigo == "FIBRAVIT-EFIC-2026"
+        && request.resource.data.keys().hasOnly(["code","nome","codigo","atividade","descricao","freq","min","sistema","problema","sugestao","ts","criadoEm"])
+        && request.resource.data.keys().hasAll(["code","nome","codigo","atividade","freq","ts","criadoEm"])
+        && request.resource.data.code is string && request.resource.data.code.size() <= 10
+        && request.resource.data.nome is string && request.resource.data.nome.size() > 0 && request.resource.data.nome.size() <= 100
+        && request.resource.data.atividade is string && request.resource.data.atividade.size() > 0 && request.resource.data.atividade.size() <= 200
+        && request.resource.data.get("descricao", "") is string && request.resource.data.get("descricao", "").size() <= 2000
+        && request.resource.data.get("sistema", "") is string && request.resource.data.get("sistema", "").size() <= 200
+        && request.resource.data.get("problema", "") is string && request.resource.data.get("problema", "").size() <= 2000
+        && request.resource.data.get("sugestao", "") is string && request.resource.data.get("sugestao", "").size() <= 2000
+        && request.resource.data.freq in ["Diária","Semanal","Quinzenal","Mensal","Eventual"]
+        && (request.resource.data.get("min", null) == null || request.resource.data.min is number)
+        && request.resource.data.criadoEm == request.time;
+    }
+  }
+}
