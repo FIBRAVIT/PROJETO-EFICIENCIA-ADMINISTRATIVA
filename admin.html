@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Painel do diagnóstico – Fibravit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#EEF3F4;--surface:#fff;--ink:#12262D;--muted:#5A6E75;--line:#C9D7DA;--on:#fff;--n:#0A6B7D;--n-soft:#DCF0F3;--a:#A85A0A;--a-soft:#FBEBD6;--m:#4F5D8F;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0C171B;--surface:#14252B;--ink:#E7F0F2;--muted:#9BB0B7;--line:#2C4650;--on:#0C171B;--n:#4FC3D6;--n-soft:#12363E;--a:#F0A04B;--a-soft:#3A2810;--m:#9DAAE6;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Barlow,system-ui,sans-serif}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",sans-serif;margin:0;line-height:1.1}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:clamp(30px,5vw,44px)}h2{font-size:28px;margin:30px 0 10px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.btn{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 18px;font:600 15px Barlow,sans-serif;cursor:pointer}
+.btn.pri{background:var(--n);border-color:var(--n);color:var(--on)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--n);outline-offset:2px}
+input,select{font:400 16px Barlow,sans-serif;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--ink)}
+.login{max-width:380px;margin:70px auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;display:grid;gap:12px}
+.login label{display:grid;gap:3px;font-weight:600;font-size:14px}.login input{width:100%}
+#err{color:var(--a);font-size:14px;min-height:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card b{display:block;font:700 40px/1 "Barlow Condensed",sans-serif;color:var(--n)}
+.card span{color:var(--muted);font-size:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;overflow-x:auto}
+.bars{display:grid;gap:8px}
+.br{display:grid;grid-template-columns:minmax(120px,210px) 1fr 80px;gap:10px;align-items:center;font-size:15px}
+.br i{display:block;height:20px;border-radius:10px;background:var(--c,var(--n))}
+.br.a{--c:var(--a)}.br.m{--c:var(--m)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;background:var(--n-soft);margin:2px 4px 2px 0}
+.tag.a{background:var(--a-soft)}
+.q{margin:0 0 10px;padding:10px 12px;border-left:5px solid var(--a);background:var(--surface);border-radius:8px}
+.q small{display:block;color:var(--muted)}
+.muted{color:var(--muted)}
+.x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px}
+[hidden]{display:none!important}
+@media print{body{background:#fff;color:#000}.bar,.noprint,.x{display:none!important}.box,.card,.q{break-inside:avoid;border-color:#bbb}h2{break-after:avoid}}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <h1>Painel do diagnóstico</h1>
+  <p class="muted" style="margin:0">Acesso restrito à administração do projeto.</p>
+  <form id="lf" style="display:grid;gap:12px">
+    <label>E-mail<input type="email" name="email" required autocomplete="username"></label>
+    <label>Senha<input type="password" name="senha" required autocomplete="current-password"></label>
+    <button class="btn pri" type="submit">Entrar</button>
+  </form>
+  <div id="err" role="alert"></div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <h1>Diagnóstico de processos – Fibravit</h1>
+  <p class="muted" id="sub" style="margin:4px 0 0"></p>
+  <div class="bar noprint">
+    <button class="btn pri" id="print">Imprimir / salvar PDF</button>
+    <button class="btn" id="csv">Baixar planilha (CSV)</button>
+    <button class="btn" id="out">Sair</button>
+  </div>
+  <div class="cards" id="cards"></div>
+  <h2>Horas por mês, por setor</h2>
+  <div class="box"><div class="bars" id="hset"></div><p class="muted" style="margin:10px 0 0;font-size:14px">Horas = vezes por mês × tempo por vez. Diária conta 22 vezes, semanal 4, quinzenal 2, mensal 1 e eventual 1. Atividades sem tempo informado não entram na soma.</p></div>
+  <h2>Processos que mais consomem horas</h2>
+  <div class="box"><div class="bars" id="hproc"></div></div>
+  <h2>Cobertura: processos ainda sem preenchimento</h2>
+  <div class="box" id="cob"></div>
+  <h2>Gargalos e sugestões de melhoria</h2>
+  <div id="gar"></div>
+  <h2>Sistemas e ferramentas citados</h2>
+  <div class="box" id="sis"></div>
+  <h2 class="noprint">Todas as respostas</h2>
+  <div class="noprint">
+    <div class="bar"><input type="search" id="q" placeholder="Buscar por nome, atividade ou processo" aria-label="Buscar" style="flex:1;min-width:200px"><select id="fs" aria-label="Filtrar por setor"><option value="">Todos os setores</option></select></div>
+    <div class="box"><table><thead><tr><th>Processo</th><th>Quem</th><th>Atividade</th><th>Freq.</th><th>Tempo/vez</th><th>Horas/mês</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+  </div>
+</div>
+
+<script src="dados.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,query,orderBy,onSnapshot,deleteDoc,doc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {firebaseConfig} from "./firebase-config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const VEZES={"Diária":22,"Semanal":4,"Quinzenal":2,"Mensal":1,"Eventual":1};
+const P={};S.forEach(s=>s.ps.forEach(p=>P[p[0]]={p,s}));
+let R=[],unsub=null;
+const horas=r=>r.min?(VEZES[r.freq]||1)*Number(r.min)/60:0;
+const fmt=n=>(Math.round(n*10)/10).toLocaleString("pt-BR");
+const fmtT=m=>{m=Number(m);return m>=60?fmt(m/60)+" h":m+" min"};
+const pname=c=>P[c]?P[c].p[3]:c;
+
+$("lf").addEventListener("submit",async e=>{
+  e.preventDefault();$("err").textContent="";
+  try{await signInWithEmailAndPassword(auth,e.target.email.value,e.target.senha.value)}
+  catch(x){$("err").textContent="E-mail ou senha incorretos."}
+});
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+  if(unsub){unsub();unsub=null}
+  $("login").hidden=!!u;$("app").hidden=!u;
+  if(!u)return;
+  unsub=onSnapshot(query(collection(db,"respostas"),orderBy("ts")),s=>{
+    R=s.docs.map(d=>({...d.data(),id:d.id}));render();
+  },()=>{$("app").hidden=true;$("login").hidden=false;$("err").textContent="Esta conta não tem permissão de administradora. Confira o e-mail nas regras do Firestore.";signOut(auth)});
+});
+
+function render(){
+  const total=R.length,pessoas=new Set(R.map(r=>r.nome.trim().toLowerCase())).size;
+  const cobertos=new Set(R.map(r=>r.code)).size,nproc=Object.keys(P).length;
+  const h=R.reduce((a,r)=>a+horas(r),0);
+  $("sub").textContent="Atualizado em tempo real · "+new Date().toLocaleDateString("pt-BR");
+  $("cards").innerHTML=[[total,"atividades registradas"],[pessoas,"pessoas que responderam"],[cobertos+" de "+nproc,"processos com resposta"],[fmt(h),"horas por mês nas atividades"]].map(c=>'<div class="card"><b>'+c[0]+'</b><span>'+c[1]+'</span></div>').join("");
+  // por setor
+  const hs={};R.forEach(r=>{const s=P[r.code]?P[r.code].s:null;if(!s)return;(hs[s.id]=hs[s.id]||{s,h:0,n:0});hs[s.id].h+=horas(r);hs[s.id].n++});
+  bars("hset",Object.values(hs).sort((a,b)=>b.h-a.h).map(x=>({l:x.s.name,v:x.h,k:x.s.side,t:fmt(x.h)+" h · "+x.n+" ativ."})));
+  const hp={};R.forEach(r=>{(hp[r.code]=hp[r.code]||{h:0,n:0});hp[r.code].h+=horas(r);hp[r.code].n++});
+  bars("hproc",Object.keys(hp).map(c=>({l:pname(c),v:hp[c].h,k:P[c]?P[c].s.side:"n",t:fmt(hp[c].h)+" h"})).sort((a,b)=>b.v-a.v).slice(0,10));
+  // cobertura
+  const done=new Set(R.map(r=>r.code));
+  $("cob").innerHTML=S.map(s=>{const miss=s.ps.filter(p=>!done.has(p[0]));return '<p style="margin:0 0 8px"><b>'+esc(s.name)+'</b> <span class="muted">('+(s.ps.length-miss.length)+' de '+s.ps.length+')</span><br>'+(miss.length?miss.map(p=>'<span class="tag a">'+esc(p[2])+'</span>').join(""):'<span class="tag">Todos os processos têm resposta</span>')+'</p>'}).join("");
+  // gargalos
+  const g=R.filter(r=>r.problema||r.sugestao);
+  $("gar").innerHTML=g.length?g.map(r=>'<div class="q"><b>'+esc(pname(r.code))+'</b> · '+esc(r.atividade)+'<small>'+esc(r.nome)+'</small>'+(r.problema?'<div>Gargalo: '+esc(r.problema)+'</div>':'')+(r.sugestao?'<div>Sugestão: '+esc(r.sugestao)+'</div>':'')+'</div>').join(""):'<p class="muted">Ainda não há gargalos ou sugestões registrados.</p>';
+  // sistemas
+  const sc={};R.forEach(r=>(r.sistema||"").split(/[,;\/+]| e /i).map(x=>x.trim()).filter(Boolean).forEach(x=>{const k=x.toLowerCase();(sc[k]=sc[k]||{n:0,l:x}).n++}));
+  const sl=Object.values(sc).sort((a,b)=>b.n-a.n);
+  $("sis").innerHTML=sl.length?sl.map(x=>'<span class="tag">'+esc(x.l)+' · '+x.n+'</span>').join(""):'<span class="muted">Nenhum sistema citado ainda.</span>';
+  // setores no filtro
+  const fs=$("fs"),cur=fs.value;if(fs.options.length<2)S.forEach(s=>fs.add(new Option(s.name,s.id)));fs.value=cur;
+  table();
+}
+function bars(id,rows){
+  const mx=Math.max(1,...rows.map(r=>r.v));
+  $(id).innerHTML=rows.length?rows.map(r=>'<div class="br '+r.k+'"><span>'+esc(r.l)+'</span><span><i style="width:'+Math.max(3,r.v/mx*100)+'%"></i></span><span>'+esc(r.t)+'</span></div>').join(""):'<span class="muted">Sem dados ainda.</span>';
+}
+function table(){
+  const q=$("q").value.trim().toLowerCase(),sid=$("fs").value;
+  const rows=R.filter(r=>(!sid||(P[r.code]&&P[r.code].s.id===sid))&&(!q||(r.nome+" "+r.atividade+" "+pname(r.code)).toLowerCase().includes(q)));
+  $("tb").innerHTML=rows.map(r=>'<tr><td>'+esc(pname(r.code))+'</td><td>'+esc(r.nome)+'</td><td><b>'+esc(r.atividade)+'</b>'+(r.descricao?'<br><span class="muted">'+esc(r.descricao)+'</span>':'')+'</td><td>'+esc(r.freq)+'</td><td>'+(r.min?fmtT(r.min):"")+'</td><td>'+fmt(horas(r))+'</td><td><button class="x" data-d="'+r.id+'" aria-label="Apagar resposta">×</button></td></tr>').join("")||'<tr><td colspan="7" class="muted">Nenhuma resposta encontrada.</td></tr>';
+}
+$("q").oninput=table;$("fs").onchange=table;
+$("tb").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-d]");if(!b||!confirm("Apagar esta resposta? Não dá para desfazer."))return;
+  await deleteDoc(doc(db,"respostas",b.dataset.d));
+});
+$("print").onclick=()=>print();
+$("csv").onclick=()=>{
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const head=["Colaborador","Processo","Atividade","Descrição passo a passo","Frequência","Tempo por vez (min)","Horas/mês","Sistema / ferramenta","Problemas / gargalos","Sugestão de melhoria"];
+  const rows=[head.map(q).join(";")].concat(R.slice().sort((a,b)=>a.code<b.code?-1:a.code>b.code?1:a.ts-b.ts).map(r=>[r.nome,r.code+" – "+pname(r.code),r.atividade,r.descricao,r.freq,r.min,fmt(horas(r)),r.sistema,r.problema,r.sugestao].map(q).join(";")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+rows.join("\r\n")],{type:"text/csv;charset=utf-8"}));a.download="levantamento-fibravit.csv";a.click();
+};
+</script>
+</body>
+</html>
