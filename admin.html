@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Painel do diagnóstico – Fibravit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#EEF3F4;--surface:#fff;--ink:#12262D;--muted:#5A6E75;--line:#C9D7DA;--on:#fff;--n:#0A6B7D;--n-soft:#DCF0F3;--a:#A85A0A;--a-soft:#FBEBD6;--m:#4F5D8F;--m-soft:#E4E8F7;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0C171B;--surface:#14252B;--ink:#E7F0F2;--muted:#9BB0B7;--line:#2C4650;--on:#0C171B;--n:#4FC3D6;--n-soft:#12363E;--a:#F0A04B;--a-soft:#3A2810;--m:#9DAAE6;--m-soft:#222A47;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Barlow,system-ui,sans-serif}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",sans-serif;margin:0;line-height:1.1}
+.wrap{max-width:1500px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:clamp(30px,5vw,44px)}h2{font-size:28px;margin:30px 0 10px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.btn{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 18px;font:600 15px Barlow,sans-serif;cursor:pointer}
+.btn.pri{background:var(--n);border-color:var(--n);color:var(--on)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--n);outline-offset:2px}
+input,select{font:400 16px Barlow,sans-serif;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface);color:var(--ink)}
+.login{max-width:380px;margin:70px auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;display:grid;gap:12px}
+.login label{display:grid;gap:3px;font-weight:600;font-size:14px}.login input{width:100%}
+#err{color:var(--a);font-size:14px;min-height:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card b{display:block;font:700 40px/1 "Barlow Condensed",sans-serif;color:var(--n)}
+.card span{color:var(--muted);font-size:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;overflow-x:auto}
+.bars{display:grid;gap:8px}
+.br{display:grid;grid-template-columns:minmax(120px,210px) 1fr 80px;gap:10px;align-items:center;font-size:15px}
+.br i{display:block;height:20px;border-radius:10px;background:var(--c,var(--n))}
+.br.a{--c:var(--a)}.br.m{--c:var(--m)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;background:var(--n-soft);margin:2px 4px 2px 0}
+.tag.a{background:var(--a-soft)}
+.q{margin:0 0 10px;padding:10px 12px;border-left:5px solid var(--a);background:var(--surface);border-radius:8px}
+.q small{display:block;color:var(--muted)}
+.muted{color:var(--muted)}
+.x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px}
+[hidden]{display:none!important}
+@media print{body{background:#fff;color:#000}.tabs,#tabMapa,.bar,.noprint,.x{display:none!important}.box,.card,.q{break-inside:avoid;border-color:#bbb}h2{break-after:avoid}}
+
+.tabs .btn[aria-pressed=true]{background:var(--n);border-color:var(--n);color:var(--on)}
+.btn:disabled{opacity:.45;cursor:default}
+.scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+#mapa{display:block;width:100%;min-width:980px;height:auto}
+#mapa text{font-family:Barlow,sans-serif;fill:var(--ink)}
+.k-n{--c:var(--n);--cs:var(--n-soft)}.k-a{--c:var(--a);--cs:var(--a-soft)}.k-m{--c:var(--m);--cs:var(--m-soft)}
+.ln{fill:none;stroke:var(--c);stroke-width:2.2;opacity:.8}
+.main rect{fill:var(--c)}.main text{fill:var(--on);font:700 23px "Barlow Condensed",sans-serif}
+.sec{cursor:pointer}.sec rect{fill:var(--cs);stroke:var(--c);stroke-width:2}.sec text{font:700 20px "Barlow Condensed",sans-serif}
+.k-m .main{cursor:pointer}
+.leaf{cursor:pointer}.leaf rect{fill:var(--surface);stroke:var(--c);stroke-width:1.6}.leaf text{font-size:16px}.leaf:hover rect{fill:var(--cs)}
+.ctr circle{fill:var(--ink)}.ctr text{fill:var(--bg);font:700 30px "Barlow Condensed",sans-serif;text-anchor:middle}
+.leaf:focus-visible{outline:3px solid var(--n);outline-offset:2px}
+.ov{position:fixed;inset:0;background:rgba(5,15,20,.55);display:none;align-items:center;justify-content:center;z-index:20;padding:12px}
+.ov.on{display:flex}
+#edp{background:var(--surface);width:min(620px,100%);max-height:90vh;overflow:auto;border-radius:20px;padding:20px;border-top:8px solid var(--c,var(--n))}
+#edp .ph{display:flex;align-items:flex-start;gap:10px}#edp .ph h3{font-size:30px}#edp .x{margin-left:auto;border:1px solid var(--line);border-radius:999px;width:38px;height:38px;color:var(--ink)}
+#edp form{display:grid;gap:10px}
+#edp label{display:grid;gap:3px;font-weight:600;font-size:14px}
+#edp input,#edp select,#edp textarea{width:100%;font:400 16px Barlow,sans-serif;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--ink)}
+#edp textarea{min-height:80px;resize:vertical}
+#edp .row{display:grid;grid-template-columns:90px 1fr;gap:10px}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <h1>Painel do diagnóstico</h1>
+  <p class="muted" style="margin:0">Acesso restrito à administração do projeto.</p>
+  <form id="lf" style="display:grid;gap:12px">
+    <label>E-mail<input type="email" name="email" required autocomplete="username"></label>
+    <label>Senha<input type="password" name="senha" required autocomplete="current-password"></label>
+    <button class="btn pri" type="submit">Entrar</button>
+  </form>
+  <div id="err" role="alert"></div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <h1>Diagnóstico de processos – Fibravit</h1>
+  <p class="muted" id="sub" style="margin:4px 0 0"></p>
+  <div class="bar noprint">
+    <button class="btn pri" id="print">Imprimir / salvar PDF</button>
+    <button class="btn" id="csv">Baixar planilha (CSV)</button>
+    <button class="btn" id="out">Sair</button>
+  </div>
+  <div class="bar tabs noprint" role="group" aria-label="Seções do painel">
+    <button class="btn" data-t="res" aria-pressed="true">Resultados</button>
+    <button class="btn" data-t="mapa" aria-pressed="false">Mapa de processos</button>
+  </div>
+  <div id="tabRes">
+  <div class="cards" id="cards"></div>
+  <h2>Horas por mês, por setor</h2>
+  <div class="box"><div class="bars" id="hset"></div><p class="muted" style="margin:10px 0 0;font-size:14px">Horas = vezes por mês × tempo por vez. Diária conta 22 vezes, semanal 4, quinzenal 2, mensal 1 e eventual 1. Atividades sem tempo informado não entram na soma.</p></div>
+  <h2>Processos que mais consomem horas</h2>
+  <div class="box"><div class="bars" id="hproc"></div></div>
+  <h2>Cobertura: processos ainda sem preenchimento</h2>
+  <div class="box" id="cob"></div>
+  <h2>Gargalos e sugestões de melhoria</h2>
+  <div id="gar"></div>
+  <h2>Sistemas e ferramentas citados</h2>
+  <div class="box" id="sis"></div>
+  <h2 class="noprint">Todas as respostas</h2>
+  <div class="noprint">
+    <div class="bar"><input type="search" id="q" placeholder="Buscar por nome, atividade ou processo" aria-label="Buscar" style="flex:1;min-width:200px"><select id="fs" aria-label="Filtrar por setor"><option value="">Todos os setores</option></select></div>
+    <div class="box"><table><thead><tr><th>Processo</th><th>Quem</th><th>Atividade</th><th>Freq.</th><th>Tempo/vez</th><th>Horas/mês</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+  </div>
+  </div>
+  <div id="tabMapa" hidden>
+    <div class="bar">
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600">Versão <select id="vsel"></select></label>
+      <span class="tag" id="vstat"></span>
+    </div>
+    <div class="bar">
+      <button class="btn pri" id="vsave">Salvar alterações</button>
+      <button class="btn" id="vundo">Descartar alterações</button>
+      <button class="btn" id="vnew">Criar nova versão (cópia)</button>
+      <button class="btn" id="vpub">Publicar para o pessoal</button>
+      <button class="btn" id="vren">Renomear</button>
+      <button class="btn" id="vdel">Apagar versão</button>
+      <button class="btn" id="vadds">+ Novo setor</button>
+    </div>
+    <p class="muted" id="vmsg" role="status" style="margin:0 0 8px"></p>
+    <p class="muted" style="margin:0 0 8px;font-size:14px">É assim que o pessoal vê o mapa. Toque num processo ou num setor para editar. Para criar a V2: abra a versão atual, faça as mudanças e clique em “Criar nova versão”. A cópia já leva as suas mudanças e a versão original fica como estava. O pessoal só vê a V2 depois de você clicar em “Publicar para o pessoal”.</p>
+    <div class="scroll"><svg id="mapa" viewBox="0 0 1450 860" role="group" aria-label="Mapa de processos"></svg></div>
+  </div>
+</div>
+<div class="ov" id="ed" role="dialog" aria-modal="true"><div id="edp"></div></div>
+
+<script src="mapa.js"></script>
+<script src="dados.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,query,orderBy,onSnapshot,deleteDoc,doc,getDocs,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {firebaseConfig} from "./firebase-config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const VEZES={"Diária":22,"Semanal":4,"Quinzenal":2,"Mensal":1,"Eventual":1};
+const P={};S.forEach(s=>s.ps.forEach(p=>P[p[0]]={p,s}));
+let R=[],unsub=null;
+const horas=r=>r.min?(VEZES[r.freq]||1)*Number(r.min)/60:0;
+const fmt=n=>(Math.round(n*10)/10).toLocaleString("pt-BR");
+const fmtT=m=>{m=Number(m);return m>=60?fmt(m/60)+" h":m+" min"};
+const pname=c=>P[c]?P[c].p[3]:c;
+
+$("lf").addEventListener("submit",async e=>{
+  e.preventDefault();$("err").textContent="";
+  try{await signInWithEmailAndPassword(auth,e.target.email.value,e.target.senha.value)}
+  catch(x){$("err").textContent="E-mail ou senha incorretos."}
+});
+$("out").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,u=>{
+  if(unsub){unsub();unsub=null}
+  $("login").hidden=!!u;$("app").hidden=!u;
+  if(!u)return;
+  loadMapas();
+  unsub=onSnapshot(query(collection(db,"respostas"),orderBy("ts")),s=>{
+    R=s.docs.map(d=>({...d.data(),id:d.id}));render();
+  },()=>{$("app").hidden=true;$("login").hidden=false;$("err").textContent="Esta conta não tem permissão de administradora. Confira o e-mail nas regras do Firestore.";signOut(auth)});
+});
+
+function render(){
+  const total=R.length,pessoas=new Set(R.map(r=>r.nome.trim().toLowerCase())).size;
+  const cobertos=new Set(R.map(r=>r.code)).size,nproc=Object.keys(P).length;
+  const h=R.reduce((a,r)=>a+horas(r),0);
+  $("sub").textContent="Atualizado em tempo real · "+new Date().toLocaleDateString("pt-BR");
+  $("cards").innerHTML=[[total,"atividades registradas"],[pessoas,"pessoas que responderam"],[cobertos+" de "+nproc,"processos com resposta"],[fmt(h),"horas por mês nas atividades"]].map(c=>'<div class="card"><b>'+c[0]+'</b><span>'+c[1]+'</span></div>').join("");
+  // por setor
+  const hs={};R.forEach(r=>{const s=P[r.code]?P[r.code].s:null;if(!s)return;(hs[s.id]=hs[s.id]||{s,h:0,n:0});hs[s.id].h+=horas(r);hs[s.id].n++});
+  bars("hset",Object.values(hs).sort((a,b)=>b.h-a.h).map(x=>({l:x.s.name,v:x.h,k:x.s.side,t:fmt(x.h)+" h · "+x.n+" ativ."})));
+  const hp={};R.forEach(r=>{(hp[r.code]=hp[r.code]||{h:0,n:0});hp[r.code].h+=horas(r);hp[r.code].n++});
+  bars("hproc",Object.keys(hp).map(c=>({l:pname(c),v:hp[c].h,k:P[c]?P[c].s.side:"n",t:fmt(hp[c].h)+" h"})).sort((a,b)=>b.v-a.v).slice(0,10));
+  // cobertura
+  const done=new Set(R.map(r=>r.code));
+  $("cob").innerHTML=setoresAtivos().map(s=>{const miss=s.ps.filter(p=>!done.has(p[0]));return '<p style="margin:0 0 8px"><b>'+esc(s.name)+'</b> <span class="muted">('+(s.ps.length-miss.length)+' de '+s.ps.length+')</span><br>'+(miss.length?miss.map(p=>'<span class="tag a">'+esc(p[2])+'</span>').join(""):'<span class="tag">Todos os processos têm resposta</span>')+'</p>'}).join("");
+  // gargalos
+  const g=R.filter(r=>r.problema||r.sugestao);
+  $("gar").innerHTML=g.length?g.map(r=>'<div class="q"><b>'+esc(pname(r.code))+'</b> · '+esc(r.atividade)+'<small>'+esc(r.nome)+'</small>'+(r.problema?'<div>Gargalo: '+esc(r.problema)+'</div>':'')+(r.sugestao?'<div>Sugestão: '+esc(r.sugestao)+'</div>':'')+'</div>').join(""):'<p class="muted">Ainda não há gargalos ou sugestões registrados.</p>';
+  // sistemas
+  const sc={};R.forEach(r=>(r.sistema||"").split(/[,;\/+]| e /i).map(x=>x.trim()).filter(Boolean).forEach(x=>{const k=x.toLowerCase();(sc[k]=sc[k]||{n:0,l:x}).n++}));
+  const sl=Object.values(sc).sort((a,b)=>b.n-a.n);
+  $("sis").innerHTML=sl.length?sl.map(x=>'<span class="tag">'+esc(x.l)+' · '+x.n+'</span>').join(""):'<span class="muted">Nenhum sistema citado ainda.</span>';
+  // setores no filtro
+  const fs=$("fs"),cur=fs.value;fs.length=1;setoresAtivos().forEach(s=>fs.add(new Option(s.name,s.id)));fs.value=cur;
+  table();
+}
+function bars(id,rows){
+  const mx=Math.max(1,...rows.map(r=>r.v));
+  $(id).innerHTML=rows.length?rows.map(r=>'<div class="br '+r.k+'"><span>'+esc(r.l)+'</span><span><i style="width:'+Math.max(3,r.v/mx*100)+'%"></i></span><span>'+esc(r.t)+'</span></div>').join(""):'<span class="muted">Sem dados ainda.</span>';
+}
+function table(){
+  const q=$("q").value.trim().toLowerCase(),sid=$("fs").value;
+  const rows=R.filter(r=>(!sid||(P[r.code]&&P[r.code].s.id===sid))&&(!q||(r.nome+" "+r.atividade+" "+pname(r.code)).toLowerCase().includes(q)));
+  $("tb").innerHTML=rows.map(r=>'<tr><td>'+esc(pname(r.code))+'</td><td>'+esc(r.nome)+'</td><td><b>'+esc(r.atividade)+'</b>'+(r.descricao?'<br><span class="muted">'+esc(r.descricao)+'</span>':'')+'</td><td>'+esc(r.freq)+'</td><td>'+(r.min?fmtT(r.min):"")+'</td><td>'+fmt(horas(r))+'</td><td><button class="x" data-d="'+r.id+'" aria-label="Apagar resposta">×</button></td></tr>').join("")||'<tr><td colspan="7" class="muted">Nenhuma resposta encontrada.</td></tr>';
+}
+$("q").oninput=table;$("fs").onchange=table;
+$("tb").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-d]");if(!b||!confirm("Apagar esta resposta? Não dá para desfazer."))return;
+  await deleteDoc(doc(db,"respostas",b.dataset.d));
+});
+$("print").onclick=()=>print();
+$("csv").onclick=()=>{
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const head=["Colaborador","Processo","Atividade","Descrição passo a passo","Frequência","Tempo por vez (min)","Horas/mês","Sistema / ferramenta","Problemas / gargalos","Sugestão de melhoria"];
+  const rows=[head.map(q).join(";")].concat(R.slice().sort((a,b)=>a.code<b.code?-1:a.code>b.code?1:a.ts-b.ts).map(r=>[r.nome,r.code+" – "+pname(r.code),r.atividade,r.descricao,r.freq,r.min,fmt(horas(r)),r.sistema,r.problema,r.sugestao].map(q).join(";")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+rows.join("\r\n")],{type:"text/csv;charset=utf-8"}));a.download="levantamento-fibravit.csv";a.click();
+};
+
+/* ===== MAPA DE PROCESSOS (versões) ===== */
+const clone=o=>JSON.parse(JSON.stringify(o));
+const SIDE={n:"Negócio",a:"Apoio",m:"Filiais"};
+let V={},ativo="",cur="",W=null,dirty=false;
+const vmsg=t=>{$("vmsg").textContent=t||""};
+const setoresAtivos=()=>V[ativo]?V[ativo].setores:S;
+const vcmp=(a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1));
+function rebuildP(){
+  Object.keys(P).forEach(k=>delete P[k]);
+  const add=L=>L.forEach(s=>s.ps.forEach(p=>P[p[0]]={p,s}));
+  Object.keys(V).forEach(k=>{if(k!==ativo)add(V[k].setores)});
+  add(setoresAtivos());
+}
+async function loadMapas(){
+  try{
+    const [qs,cf]=await Promise.all([getDocs(collection(db,"mapas")),getDoc(doc(db,"config","mapa"))]);
+    V={};qs.forEach(d=>{const x=d.data();V[d.id]={nome:x.nome||d.id,setores:JSON.parse(x.json)}});
+    if(!Object.keys(V).length){
+      await setDoc(doc(db,"mapas","v1"),{nome:"Versão 1 (atual)",json:JSON.stringify(S),criadoEm:serverTimestamp()});
+      await setDoc(doc(db,"config","mapa"),{ativo:"v1"});
+      V.v1={nome:"Versão 1 (atual)",setores:clone(S)};ativo="v1";
+    }else ativo=(cf.exists()&&V[cf.data().ativo])?cf.data().ativo:Object.keys(V).sort(vcmp)[0];
+    rebuildP();pick(V[cur]?cur:ativo);render();
+  }catch(e){vmsg("Não foi possível carregar os mapas. Confira se as regras do Firestore liberam as coleções “mapas” e “config”.");console.error(e)}
+}
+function pick(id){cur=id;W=clone(V[id].setores);dirty=false;draw();bar()}
+function draw(){MAPA.render($("mapa"),W,{P:{},badge:()=>"",legend:"* Parte da execução é feita por empresa terceirizada."})}
+function bar(){
+  const ks=Object.keys(V).sort(vcmp),sel=$("vsel");
+  sel.innerHTML=ks.map(k=>'<option value="'+esc(k)+'">'+esc(V[k].nome)+(k===ativo?" · publicada":"")+'</option>').join("");sel.value=cur;
+  const st=$("vstat");st.textContent=(cur===ativo?"Publicada: o pessoal vê esta versão":"Rascunho: o pessoal ainda não vê esta versão")+(dirty?" · alterações não salvas":"");
+  st.className="tag"+(cur===ativo?"":" a");
+  $("vsave").disabled=!dirty;$("vundo").disabled=!dirty;$("vpub").disabled=cur===ativo;$("vdel").disabled=cur===ativo||ks.length<2;
+}
+const touch=()=>{dirty=true;draw();bar();vmsg("")};
+async function salvar(){
+  await setDoc(doc(db,"mapas",cur),{nome:V[cur].nome,json:JSON.stringify(W),atualizadoEm:serverTimestamp()},{merge:true});
+  V[cur].setores=clone(W);dirty=false;rebuildP();render();bar();
+}
+const run=async(f,ok)=>{try{await f();vmsg(ok||"")}catch(e){vmsg("Não foi possível salvar. Confira a internet e as regras do Firestore.");console.error(e)}};
+$("vsel").onchange=e=>{if(dirty&&!confirm("Descartar as alterações não salvas desta versão?")){e.target.value=cur;return}pick(e.target.value)};
+$("vsave").onclick=()=>run(salvar,"Salvo. "+(cur===ativo?"O pessoal já vê as mudanças.":"Esta versão ainda é um rascunho."));
+$("vundo").onclick=()=>{if(confirm("Descartar as alterações não salvas?"))pick(cur)};
+$("vnew").onclick=()=>run(async()=>{
+  const ks=Object.keys(V),n=Math.max(0,...ks.map(k=>parseInt(k.slice(1))||0))+1;
+  const nome=prompt("Nome da nova versão:","Versão "+n);if(!nome)return;
+  const id="v"+n;
+  await setDoc(doc(db,"mapas",id),{nome:nome.trim(),json:JSON.stringify(W),criadoEm:serverTimestamp()});
+  V[id]={nome:nome.trim(),setores:clone(W)};rebuildP();pick(id);
+  vmsg("Nova versão criada como rascunho. A versão anterior ficou como estava.");
+});
+$("vpub").onclick=()=>run(async()=>{
+  if(dirty){if(!confirm("Há alterações não salvas. Salvar e publicar?"))return;await salvar()}
+  if(!confirm("O pessoal passará a ver “"+V[cur].nome+"”. Publicar?"))return;
+  await setDoc(doc(db,"config","mapa"),{ativo:cur});ativo=cur;rebuildP();render();bar();
+},"Publicado. O pessoal vê esta versão ao abrir o mapa.");
+$("vren").onclick=()=>run(async()=>{
+  const nome=prompt("Novo nome da versão:",V[cur].nome);if(!nome)return;
+  await setDoc(doc(db,"mapas",cur),{nome:nome.trim()},{merge:true});V[cur].nome=nome.trim();bar();
+});
+$("vdel").onclick=()=>run(async()=>{
+  if(!confirm("Apagar “"+V[cur].nome+"”? Não dá para desfazer. As respostas já enviadas continuam salvas."))return;
+  await deleteDoc(doc(db,"mapas",cur));delete V[cur];rebuildP();pick(ativo);
+},"Versão apagada.");
+$("vadds").onclick=()=>{const s={id:"s"+Date.now().toString(36),name:"Novo setor",side:"n",ps:[]};W.push(s);touch();editSec(s.id)};
+window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue=""}});
+document.querySelectorAll(".tabs [data-t]").forEach(b=>b.onclick=()=>{
+  const m=b.dataset.t==="mapa";$("tabRes").hidden=m;$("tabMapa").hidden=!m;
+  document.querySelectorAll(".tabs [data-t]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+});
+
+/* editor */
+const ed=(h,side)=>{const p=$("edp");p.className="k-"+(side||"n");p.innerHTML=h;$("ed").classList.add("on")};
+const closeEd=()=>$("ed").classList.remove("on");
+const fld=(l,n,v,area)=>'<label>'+l+(area?'<textarea name="'+n+'">'+esc(v)+'</textarea>':'<input name="'+n+'" value="'+esc(v)+'">')+'</label>';
+const head=t=>'<div class="ph"><h3>'+t+'</h3><button class="x" type="button" data-act="close" aria-label="Fechar">×</button></div>';
+const btn=(a,t,x)=>'<button class="btn" type="button" data-act="'+a+'"'+(x?' style="'+x+'"':'')+'>'+t+'</button>';
+function findP(code){for(const s of W){const i=s.ps.findIndex(p=>p[0]===code);if(i>-1)return{s,i}}return null}
+function editLeaf(code){
+  const f=findP(code);if(!f)return;const{s,i}=f,p=s.ps[i];
+  const opts=W.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===s.id?" selected":"")+'>'+esc(x.name)+'</option>').join("");
+  ed(head("Editar processo")+'<p class="muted" style="margin:2px 0 8px">'+SIDE[s.side]+' · '+esc(s.name)+'</p><form id="ef" data-c="'+esc(code)+'">'+
+    '<div class="row">'+fld("Ícone","e",p[1])+fld("Nome curto (aparece no mapa)","n",p[2])+'</div>'+
+    fld("Nome completo","f",p[3])+fld("Responsável","r",p[4])+
+    fld("Atividades que costumam acontecer (separe por vírgula)","a",p[5],1)+
+    '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="t" style="width:auto"'+(p[6]?" checked":"")+'> Parte feita por empresa terceirizada</label>'+
+    '<label>Setor<select name="s">'+opts+'</select></label>'+
+    '<div class="bar"><button class="btn pri" type="submit">Aplicar</button>'+btn("up","↑ Subir")+btn("down","↓ Descer")+btn("del","Apagar processo","color:var(--a)")+'</div></form>',s.side);
+}
+function editSec(id){
+  const s=W.find(x=>x.id===id);if(!s)return;
+  ed(head("Editar setor")+'<p class="muted" style="margin:2px 0 8px">'+SIDE[s.side]+' · '+s.ps.length+' processo'+(s.ps.length===1?"":"s")+'</p><form id="sf" data-s="'+esc(id)+'">'+
+    fld("Nome do setor","n",s.name)+
+    (s.side==="m"?"":'<label>Lado do mapa<select name="l"><option value="n"'+(s.side==="n"?" selected":"")+'>Negócio</option><option value="a"'+(s.side==="a"?" selected":"")+'>Apoio</option></select></label>')+
+    '<div class="bar"><button class="btn pri" type="submit">Aplicar</button>'+btn("add","+ Novo processo neste setor")+btn("up","↑ Subir")+btn("down","↓ Descer")+btn("del","Apagar setor","color:var(--a)")+'</div></form>',s.side);
+}
+function moveSec(s,d){
+  const same=W.filter(x=>x.side===s.side),j=same.indexOf(s)+d;if(j<0||j>=same.length)return;
+  const a=W.indexOf(s),b=W.indexOf(same[j]);[W[a],W[b]]=[W[b],W[a]];
+}
+$("edp").addEventListener("submit",e=>{
+  e.preventDefault();const f=e.target,E=f.elements;
+  if(f.id==="ef"){
+    const x=findP(f.dataset.c);if(!x)return;const p=x.s.ps[x.i];
+    p[1]=E.e.value.trim()||"📌";p[2]=E.n.value.trim()||"Sem nome";p[3]=E.f.value.trim()||p[2];p[4]=E.r.value.trim();
+    p[5]=E.a.value.split(/[,\n]/).map(z=>z.trim()).filter(Boolean).join(", ");p[6]=E.t.checked?1:0;
+    if(E.s.value!==x.s.id){x.s.ps.splice(x.i,1);W.find(s=>s.id===E.s.value).ps.push(p)}
+  }else{
+    const s=W.find(x=>x.id===f.dataset.s);if(!s)return;
+    s.name=E.n.value.trim()||"Setor";if(E.l)s.side=E.l.value;
+  }
+  touch();closeEd();
+});
+$("edp").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act,f=b.closest("form");
+  if(a==="close")return closeEd();
+  if(!f)return;
+  if(f.id==="ef"){
+    const code=f.dataset.c,x=findP(code);if(!x)return;const L=x.s.ps;
+    if(a==="up"&&x.i>0){[L[x.i-1],L[x.i]]=[L[x.i],L[x.i-1]];touch();editLeaf(code)}
+    if(a==="down"&&x.i<L.length-1){[L[x.i+1],L[x.i]]=[L[x.i],L[x.i+1]];touch();editLeaf(code)}
+    if(a==="del"&&confirm("Apagar este processo do mapa? As respostas já enviadas continuam salvas.")){L.splice(x.i,1);touch();closeEd()}
+  }else{
+    const id=f.dataset.s,s=W.find(x=>x.id===id);if(!s)return;
+    if(a==="add"){const c="p"+Date.now().toString(36);s.ps.push([c,"📌","Novo processo","Novo processo","","",0]);touch();editLeaf(c)}
+    if(a==="up"){moveSec(s,-1);touch();editSec(id)}
+    if(a==="down"){moveSec(s,1);touch();editSec(id)}
+    if(a==="del"&&confirm("Apagar o setor “"+s.name+"” e os seus "+s.ps.length+" processos? As respostas já enviadas continuam salvas.")){W.splice(W.indexOf(s),1);touch();closeEd()}
+  }
+});
+$("ed").addEventListener("click",e=>{if(e.target.id==="ed")closeEd()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeEd()});
+$("mapa").addEventListener("click",e=>{
+  const l=e.target.closest(".leaf");if(l)return editLeaf(l.dataset.c);
+  const s=e.target.closest("[data-sid]");if(s)editSec(s.dataset.sid);
+});
+$("mapa").addEventListener("keydown",e=>{
+  if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("leaf")){e.preventDefault();editLeaf(e.target.dataset.c)}
+});
+</script>
+</body>
+</html>
